@@ -64,6 +64,27 @@
             <v-card>
               <v-card-text class="dropdown-menu-content">
                 <div class="dropdown-menu-title">Player Race</div>
+                <v-tooltip location="top" transition="none" content-class="w3-tooltip elevation-1">
+                  <template v-slot:activator="{ props }">
+                    <v-switch
+                      v-model="selfIncludeRandom"
+                      hide-details
+                      density="compact"
+                      color="primary"
+                      class="ml-1 mb-2"
+                      v-bind="props"
+                    >
+                      <template v-slot:label>
+                        <span>With Random</span>
+                      </template>
+                    </v-switch>
+                  </template>
+                  <div>
+                    When enabled, also includes matches where the player played as Random, but their actual race was the one selected.<br><br>
+                    When disabled, only matches where the selected race was picked are shown.<br><br>
+                    <small>This option is ignored when Any or Random are selected.</small>
+                  </div>
+                </v-tooltip>
                 <v-divider />
                 <v-list density="compact" max-height="400" class="overflow-y-auto">
                   <v-list-item
@@ -102,6 +123,27 @@
             <v-card>
               <v-card-text class="dropdown-menu-content">
                 <div class="dropdown-menu-title">Opponent Race</div>
+                <v-tooltip location="top" transition="none" content-class="w3-tooltip elevation-1">
+                  <template v-slot:activator="{ props }">
+                    <v-switch
+                      v-model="opponentIncludeRandom"
+                      hide-details
+                      density="compact"
+                      color="primary"
+                      class="ml-1 mb-2"
+                      v-bind="props"
+                    >
+                      <template v-slot:label>
+                        <span>With Random</span>
+                      </template>
+                    </v-switch>
+                  </template>
+                  <div>
+                    When enabled, also includes matches where the opponent played as Random, but their actual race was the one selected.<br><br>
+                    When disabled, only matches where the selected race was picked are shown.<br><br>
+                    <small>This option is ignored when Any or Random are selected.</small>
+                  </div>
+                </v-tooltip>
                 <v-divider />
                 <v-list density="compact" max-height="400" class="overflow-y-auto">
                   <v-list-item
@@ -470,6 +512,8 @@ export default defineComponent({
       showHeroIcons,
       heroChanged,
       selectedHeroes,
+      selfIncludeRandom: false,
+      opponentIncludeRandom: false,
     };
   },
 });
