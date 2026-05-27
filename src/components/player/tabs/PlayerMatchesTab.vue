@@ -62,27 +62,29 @@
               </v-btn>
             </template>
             <v-card>
-              <v-card-text class="dropdown-menu-content">
+              <v-card-text class="dropdown-menu-content pa-2">
                 <div class="dropdown-menu-title">Player Race</div>
-                <v-tooltip location="top" transition="none" content-class="w3-tooltip elevation-1">
+                <v-tooltip location="top" transition="none" content-class="w3-tooltip elevation-1" max-width="260">
                   <template v-slot:activator="{ props }">
                     <v-switch
-                      v-model="selfIncludeRandom"
+                      v-model="playerIncludeRandom"
+                      v-bind="props"
                       hide-details
                       density="compact"
                       color="primary"
-                      class="ml-1 mb-2"
-                      v-bind="props"
+                      class="ml-1 mb-0"
                     >
                       <template v-slot:label>
                         <span>With Random</span>
                       </template>
                     </v-switch>
                   </template>
-                  <div>
-                    When enabled, also includes matches where the player played as Random, but their actual race was the one selected.<br><br>
-                    When disabled, only matches where the selected race was picked are shown.<br><br>
-                    <small>This option is ignored when Any or Random are selected.</small>
+
+                  <div class="tooltip-content">
+                    <div>
+                      When enabled, includes matches where Random rolled the selected race.
+                      Ignored for Any or Random.
+                    </div>
                   </div>
                 </v-tooltip>
                 <v-divider />
@@ -93,12 +95,7 @@
                     @click="setPlayerRaceForSearch(race.raceId)"
                   >
                     <template v-slot:prepend>
-                      <img
-                        v-if="race.icon"
-                        :src="race.icon"
-                        :alt="race.raceName"
-                        class="race-filter-icon mr-3"
-                      />
+                      <img v-if="race.icon" :src="race.icon" :alt="race.raceName" class="race-filter-icon mr-3" />
                     </template>
                     <v-list-item-title>{{ race.raceName }}</v-list-item-title>
                   </v-list-item>
@@ -123,25 +120,27 @@
             <v-card>
               <v-card-text class="dropdown-menu-content">
                 <div class="dropdown-menu-title">Opponent Race</div>
-                <v-tooltip location="top" transition="none" content-class="w3-tooltip elevation-1">
+                <v-tooltip location="top" transition="none" content-class="w3-tooltip elevation-1" max-width="260">
                   <template v-slot:activator="{ props }">
                     <v-switch
                       v-model="opponentIncludeRandom"
+                      v-bind="props"
                       hide-details
                       density="compact"
                       color="primary"
-                      class="ml-1 mb-2"
-                      v-bind="props"
+                      class="ml-1 mb-0"
                     >
                       <template v-slot:label>
                         <span>With Random</span>
                       </template>
                     </v-switch>
                   </template>
-                  <div>
-                    When enabled, also includes matches where the opponent played as Random, but their actual race was the one selected.<br><br>
-                    When disabled, only matches where the selected race was picked are shown.<br><br>
-                    <small>This option is ignored when Any or Random are selected.</small>
+
+                  <div class="tooltip-content">
+                    <div>
+                      When enabled, includes matches where Random rolled the selected race.
+                      Ignored for Any or Random.
+                    </div>
                   </div>
                 </v-tooltip>
                 <v-divider />
@@ -152,12 +151,7 @@
                     @click="setOpponentRaceForSearch(race.raceId)"
                   >
                     <template v-slot:prepend>
-                      <img
-                        v-if="race.icon"
-                        :src="race.icon"
-                        :alt="race.raceName"
-                        class="race-filter-icon mr-3"
-                      />
+                      <img v-if="race.icon" :src="race.icon" :alt="race.raceName" class="race-filter-icon mr-3" />
                     </template>
                     <v-list-item-title>{{ race.raceName }}</v-list-item-title>
                   </v-list-item>
@@ -167,10 +161,7 @@
           </v-menu>
         </v-col>
         <v-col cols="auto" class="pa-0">
-          <hero-select
-            :selectedHeroes="selectedHeroes"
-            @heroChanged="heroChanged"
-          />
+          <hero-select :selectedHeroes="selectedHeroes" @heroChanged="heroChanged" />
         </v-col>
         <v-col class="pa-0 d-flex justify-end align-end player-match-search-col">
           <hero-icon-toggle :showHeroes="showHeroIcons" @update:showHeroes="showHeroIcons = $event" />
@@ -292,6 +283,24 @@ export default defineComponent({
         icon: getAsset(`raceIcons/${ERaceEnum[ERaceEnum.RANDOM]}.png`),
       },
     ]);
+
+    const playerIncludeRandom = computed({
+      get: () => !!playerStore.playerIncludeRandom,
+      set: (val: boolean) => playerStore.SET_PLAYER_INCLUDE_RANDOM(val)
+    });
+
+    const opponentIncludeRandom = computed({
+      get: () => !!playerStore.opponentIncludeRandom,
+      set: (val: boolean) => playerStore.SET_OPPONENT_INCLUDE_RANDOM(val)
+    });
+
+    watch(
+      [playerIncludeRandom, opponentIncludeRandom],
+      () => {
+        getMatches();
+      },
+      { flush: "post" }
+    );
 
     function getRaceOption(race: ERaceEnum | undefined): RaceFilterOption {
       const selectedRace = race ?? ERaceEnum.TOTAL;
@@ -474,6 +483,7 @@ export default defineComponent({
       }
 
       isLoadingMatches.value = true;
+
       try {
         await playerStore.loadMatches(page);
       } finally {
@@ -512,8 +522,8 @@ export default defineComponent({
       showHeroIcons,
       heroChanged,
       selectedHeroes,
-      selfIncludeRandom: false,
-      opponentIncludeRandom: false,
+      playerIncludeRandom,
+      opponentIncludeRandom,
     };
   },
 });

@@ -26,6 +26,8 @@ function buildPlayerMatchesCacheKey(params: {
   gateway: number;
   season: number;
   heroes: number[];
+  playerIncludeRandom: boolean;
+  opponentIncludeRandom: boolean;
 }): string {
   const heroesKey = params.heroes.length ? params.heroes.join(",") : "none";
   return [
@@ -37,6 +39,8 @@ function buildPlayerMatchesCacheKey(params: {
     params.opponentRace,
     params.gateway,
     params.season,
+    params.playerIncludeRandom,
+    params.opponentIncludeRandom,
     heroesKey,
   ].join("|");
 }
@@ -82,6 +86,8 @@ export const usePlayerStore = defineStore("player", {
     mmrRpTimeline: {} as PlayerMmrRpTimeline,
     playerGameLengthStats: {} as PlayerGameLengthStats | undefined,
     loadProfileError: undefined,
+    playerIncludeRandom: false,
+    opponentIncludeRandom: false,
   }),
   actions: {
     async loadProfile(params: { battleTag: string; freshLogin: boolean }) {
@@ -137,7 +143,9 @@ export const usePlayerStore = defineStore("player", {
     async loadMatches(page?: number) {
       this.SET_PAGE(page ?? 1);
       this.SET_LOADING_RECENT_MATCHES(true);
+
       const rootStateStore = useRootStateStore();
+
       const key = buildPlayerMatchesCacheKey({
         page: this.page - 1,
         battleTag: this.battleTag,
@@ -148,10 +156,13 @@ export const usePlayerStore = defineStore("player", {
         gateway: rootStateStore.gateway,
         season: this.selectedSeason?.id ?? -1,
         heroes: this.selectedHeroes,
+        playerIncludeRandom: this.playerIncludeRandom,
+        opponentIncludeRandom: this.opponentIncludeRandom,
       });
 
       try {
         let response = playerMatchesCache.get(key);
+
 
         if (!response) {
           let request = playerMatchesInFlight.get(key);
@@ -166,6 +177,8 @@ export const usePlayerStore = defineStore("player", {
               rootStateStore.gateway,
               this.selectedSeason?.id ?? -1,
               this.selectedHeroes,
+              this.playerIncludeRandom,
+              this.opponentIncludeRandom
             );
             playerMatchesInFlight.set(key, request);
           }
@@ -368,6 +381,12 @@ export const usePlayerStore = defineStore("player", {
     SET_SELECTED_HEROES(heroes: number[]): void {
       this.selectedHeroes = heroes;
     },
+    SET_PLAYER_INCLUDE_RANDOM(value: boolean): void {
+      this.playerIncludeRandom = value;
+    },
+    SET_OPPONENT_INCLUDE_RANDOM(value: boolean): void {
+      this.opponentIncludeRandom = value;
+    },
     RESET_PROFILE_MATCH_FILTERS(): void {
       this.SET_OPPONENT_TAG("");
       this.SET_PROFILE_MATCHES_GAME_MODE(EGameMode.UNDEFINED);
@@ -375,6 +394,8 @@ export const usePlayerStore = defineStore("player", {
       this.SET_OPPONENT_RACE(undefined);
       this.SET_SELECTED_HEROES([]);
       this.SET_PAGE(1);
+      this.SET_PLAYER_INCLUDE_RANDOM(false);
+      this.SET_OPPONENT_INCLUDE_RANDOM(false);
     },
     invalidateMatchesCache(): void {
       playerMatchesCache.clear();
